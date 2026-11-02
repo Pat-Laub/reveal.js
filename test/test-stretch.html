@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>reveal.js - Test Stretch</title>
+	</head>
+
+	<body style="overflow: auto;">
+
+		<div id="qunit"></div>
+		<div id="qunit-fixture"></div>
+
+		<div class="reveal" style="display: none;">
+
+			<div class="slides">
+
+				<section>1</section>
+				<section>2</section>
+				<section>3</section>
+				<section>4</section>
+
+				<section id="stretched-image">
+					<h2>5</h2>
+					<img class="r-stretch" data-src="../examples/assets/image1.png">
+				</section>
+
+			</div>
+
+		</div>
+
+		<script type="module">
+			import 'reveal.css';
+			import 'qunit/qunit/qunit.css';
+			import QUnit from 'qunit';
+			import Reveal from 'reveal.js';
+
+			QUnit.config.testTimeout = 30000;
+
+			const ready = Reveal.initialize({ viewDistance: 2 });
+
+			QUnit.module( 'Stretch' );
+
+			QUnit.test( 'Sizes a lazy-loaded image once it has loaded', async function( assert ) {
+
+				await ready;
+
+				// reveal.js also lays the slides out on the window's load event, which
+				// waits for any image that has started loading by then. Navigate after
+				// the page has loaded, so that only a layout run when the image itself
+				// loads can size it.
+				if( document.readyState !== 'complete' ) {
+					await new Promise( resolve => window.addEventListener( 'load', resolve, { once: true } ) );
+				}
+
+				const image = document.querySelector( '#stretched-image img' );
+				assert.strictEqual( image.hasAttribute( 'src' ), false, 'not loaded while its slide is out of view distance' );
+
+				const loaded = new Promise( resolve => image.addEventListener( 'load', resolve, { once: true } ) );
+
+				Reveal.slide( 4 );
+				assert.notStrictEqual( image.style.height, '0px', 'not collapsed while its size is unknown' );
+
+				await loaded;
+				await new Promise( resolve => setTimeout( resolve, 0 ) );
+
+				assert.ok( parseFloat( image.style.height ) > 0, 'given a height once loaded' );
+				assert.ok( parseFloat( image.style.width ) > 0, 'given a width once loaded' );
+
+			});
+		</script>
+
+	</body>
+</html>
