@@ -511,6 +511,58 @@
 					assert.deepEqual( Reveal.getIndices(), { h: 3, v: 0, f: undefined } );
 				});
 
+				// Each of these leaves the stack at 3.x part way down, then goes back
+				// to 2.3, the slide before it. (Not to the first slide: arriving there
+				// resets every stack.)
+				const leaveStackThenGoBack = function() {
+					Reveal.slide( 2, 2 );
+					Reveal.slide( 1, 2 );
+				};
+				const position = function() {
+					const { h, v } = Reveal.getIndices();
+					return { h, v };
+				};
+
+				QUnit.test( 'Reveal.next enters a vertical stack at its top', function( assert ) {
+					leaveStackThenGoBack();
+					Reveal.next();
+					assert.deepEqual( position(), { h: 2, v: 0 }, 'not where the stack was left' );
+
+					Reveal.configure({ navigationMode: 'linear' });
+					leaveStackThenGoBack();
+					Reveal.next();
+					assert.deepEqual( position(), { h: 2, v: 0 }, 'in linear navigation mode' );
+					Reveal.configure({ navigationMode: 'default' });
+				});
+
+				QUnit.test( 'Reveal.next enters a vertical stack at its data-start-indexv', function( assert ) {
+					const stack = Reveal.getHorizontalSlides()[2];
+					stack.setAttribute( 'data-start-indexv', '1' );
+
+					leaveStackThenGoBack();
+					Reveal.next();
+					assert.deepEqual( position(), { h: 2, v: 1 } );
+
+					stack.removeAttribute( 'data-start-indexv' );
+				});
+
+				// The speaker view's Upcoming pane (#3831) is a reveal.js instance of its
+				// own, kept one slide ahead of the presenter: it is sent the presenter's
+				// state and then calls next(). Having been further down the next stack
+				// than the presenter, it used to preview the slide it had left there.
+				QUnit.test( 'Reveal.next after Reveal.setState enters a vertical stack at its top', function( assert ) {
+					Reveal.slide( 2, 1 );
+					Reveal.setState({ indexh: 1, indexv: 2 });
+					Reveal.next();
+					assert.deepEqual( position(), { h: 2, v: 0 } );
+				});
+
+				QUnit.test( 'Reveal.right resumes a vertical stack where it was left', function( assert ) {
+					leaveStackThenGoBack();
+					Reveal.right();
+					assert.deepEqual( position(), { h: 2, v: 2 } );
+				});
+
 
 				// ---------------------------------------------------------------
 				// URL TESTS
