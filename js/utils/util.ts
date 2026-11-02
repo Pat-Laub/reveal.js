@@ -257,8 +257,10 @@ export const getRemainingHeight = (element: HTMLElement | null, height: number =
 
 		newHeight = height - (element.parentElement?.offsetHeight || 0);
 
-		// Restore the old height, just in case
-		element.style.height = oldHeight + 'px';
+		// Restore the old height, just in case. It already carries its unit
+		// (or is empty), so appending 'px' would make it invalid and leave
+		// the element at 0px.
+		element.style.height = oldHeight;
 
 		// Clear the parent (.slide) height. .removeProperty works in IE9+
 		if (element.parentElement) {

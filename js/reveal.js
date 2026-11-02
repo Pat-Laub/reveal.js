@@ -939,6 +939,14 @@ export default function( revealElement, options ) {
 				const nw = element.naturalWidth || element.videoWidth,
 					  nh = element.naturalHeight || element.videoHeight;
 
+				// The media's size isn't known until it has loaded (a lazy-loaded
+				// data-src is only set once its slide comes into view), so lay
+				// out again when it has. Adding the same listener twice is a no-op.
+				if( !nw || !nh ) {
+					element.addEventListener( element.nodeName === 'VIDEO' ? 'loadedmetadata' : 'load', layout, { once: true } );
+					return;
+				}
+
 				const es = Math.min( width / nw, remainingHeight / nh );
 
 				element.style.width = ( nw * es ) + 'px';
