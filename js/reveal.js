@@ -2565,8 +2565,17 @@ export default function( revealElement, options ) {
 				routes.down = false;
 			}
 
+			// The next horizontal slide, if there is one
+			const nextSlide = getHorizontalSlides()[ indexh + 1 ];
+
 			if( routes.down ) {
 				navigateDown({skipFragments});
+			}
+			// When going forwards and arriving on a stack we start at the
+			// top of the stack, not wherever it was last left, so that
+			// stepping through the presentation never skips a slide
+			else if( nextSlide && nextSlide.classList.contains( 'stack' ) && config.navigationMode !== 'grid' && !overview.isActive() ) {
+				slide( indexh + 1, parseInt( nextSlide.getAttribute( 'data-start-indexv' ) || 0, 10 ) );
 			}
 			else if( config.rtl ) {
 				navigateLeft({skipFragments});
